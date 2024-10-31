@@ -138,16 +138,14 @@ export class LoginComponent {
       this.error.set('');
   
       const { email, password } = this.loginForm.value;
-      console.log('Submitting login form:', { email, password }); 
-  
+      
       this.authService.login(email!, password!).subscribe({
-        next: (user) => {
-          console.log('Login successful:', user); 
+        next: () => {
           const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
           this.router.navigate([returnUrl]);
         },
         error: (err) => {
-          console.error('Login failed', err);
+          console.error('Login failed:', err);
           this.error.set('Invalid email or password');
           this.isLoading.set(false);
         }
