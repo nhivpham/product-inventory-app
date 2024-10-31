@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Product } from '../models/product.model';
-import { v4 as uuidv4 } from 'uuid';
 import { inject } from '@angular/core';
 
 @Injectable({
@@ -21,11 +20,7 @@ export class ProductService {
   }
 
   addProduct(product: Omit<Product, 'id'>): Observable<Product> {
-    const newProduct = {
-      ...product,
-      id: uuidv4()
-    };
-    return this.http.post<Product>(this.apiUrl, newProduct);
+    return this.http.post<Product>(this.apiUrl, product);
   }
 
   updateProduct(id: string, product: Product): Observable<Product> {
