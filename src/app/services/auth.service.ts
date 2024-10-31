@@ -1,15 +1,14 @@
+// src/app/services/auth.service.ts
 import { Injectable, computed, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable, from } from 'rxjs';
 import { User } from '../models/product.model';
-import { inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { inject } from '@angular/core';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private http = inject(HttpClient);
   private router = inject(Router);
   private apiUrl = '/api';
   
@@ -21,27 +20,38 @@ export class AuthService {
   readonly currentUser = computed(() => this.currentUserSig());
 
   register(user: User): Observable<User> {
-    return this.http.post<User>(`${this.apiUrl}/users`, user);
+    return from(
+      fetch(`${this.apiUrl}/users`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(user)
+      })
+        .then(res => {
+          if (!res.ok) throw new Error('Registration failed');
+          return res.json();
+        })
+    );
   }
 
   login(email: string, password: string): Observable<User> {
-    console.log('Attempting login with:', { email, password });
-    
-    return this.http.get<User[]>(`${this.apiUrl}/users?email=${email}&password=${password}`)
-      .pipe(
-        map(users => {
-          console.log('Login response:', users);
-          
-          if (!Array.isArray(users) || users.length === 0) {
+    return from(
+      fetch(`${this.apiUrl}/users?email=${email}&password=${password}`)
+        .then(res => {
+          if (!res.ok) throw new Error('Invalid credentials');
+          return res.json();
+        })
+        .then(users => {
+          const user = Array.isArray(users) ? users[0] : users;
+          if (!user) {
             throw new Error('Invalid credentials');
           }
-          
-          const user = users[0];
           localStorage.setItem('currentUser', JSON.stringify(user));
           this.currentUserSig.set(user);
           return user;
         })
-      );
+    );
   }
 
   logout(): void {

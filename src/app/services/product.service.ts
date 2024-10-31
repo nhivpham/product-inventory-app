@@ -1,33 +1,74 @@
+// src/app/services/product.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, from } from 'rxjs';
 import { Product } from '../models/product.model';
-import { inject } from '@angular/core';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProductService {
-  private http = inject(HttpClient);
   private apiUrl = '/api/products';
 
   getProducts(): Observable<Product[]> {
-    return this.http.get<Product[]>(this.apiUrl);
+    return from(
+      fetch(this.apiUrl)
+        .then(res => {
+          if (!res.ok) throw new Error('Failed to fetch products');
+          return res.json();
+        })
+    );
   }
 
   getProduct(id: string): Observable<Product> {
-    return this.http.get<Product>(`${this.apiUrl}/${id}`);
+    return from(
+      fetch(`${this.apiUrl}/${id}`)
+        .then(res => {
+          if (!res.ok) throw new Error('Failed to fetch product');
+          return res.json();
+        })
+    );
   }
 
   addProduct(product: Omit<Product, 'id'>): Observable<Product> {
-    return this.http.post<Product>(this.apiUrl, product);
+    return from(
+      fetch(this.apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(product)
+      })
+        .then(res => {
+          if (!res.ok) throw new Error('Failed to add product');
+          return res.json();
+        })
+    );
   }
 
   updateProduct(id: string, product: Product): Observable<Product> {
-    return this.http.put<Product>(`${this.apiUrl}/${id}`, product);
+    return from(
+      fetch(`${this.apiUrl}/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(product)
+      })
+        .then(res => {
+          if (!res.ok) throw new Error('Failed to update product');
+          return res.json();
+        })
+    );
   }
 
   deleteProduct(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    return from(
+      fetch(`${this.apiUrl}/${id}`, {
+        method: 'DELETE'
+      })
+        .then(res => {
+          if (!res.ok) throw new Error('Failed to delete product');
+        })
+    );
   }
 }
